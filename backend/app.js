@@ -13,15 +13,10 @@ const Subject = require('./schemas/subjectSchema');
 
 const  mongoAtlasUri ="mongodb+srv://19lob4:test1234@cardify.onbct.mongodb.net/subjects?retryWrites=true&w=majority";
 
-try {
-     mongoose
-     .connect(
-      mongoAtlasUri,
-      { useNewUrlParser: true, useUnifiedTopology: true },
-      () => console.log("Mongoose - Sucess!")
-    )
-    
+mongoose
+    .connect(mongoAtlasUri,{ useNewUrlParser: true, useUnifiedTopology: true, dbName: 'Cardify' })
     .then(()=>{
+        console.log("Mongoose - Sucess!")
         // the following lines make up the CRUD api...
 
         var app = express();
@@ -43,6 +38,15 @@ try {
         });
 
 
+        app.put("/subjects/:id", async(req,res)=>{
+            try{
+                var subject = await Subject.findByIdAndUpdate({_id:req.params.id},req.body).exec();
+                // subject.set(req.body)            
+                res.send(subject)
+            } catch(err) {
+                res.status(500).send(err)
+            }
+        })
 
 
 
@@ -55,14 +59,12 @@ try {
 
 
 
-        // start server on port 3000
-        app.listen(3000,()=>console.log('Active on port 3000'));
 
-    });
+        // start server on port 3001
+        app.listen(3001,()=>console.log('Active on port 3001'));
 
+    })
+    .catch(e => console.log('mongo failed to connect'));
 
-}catch (e) {
-    console.log("Mongoose - Could not connect");
-}
 
 

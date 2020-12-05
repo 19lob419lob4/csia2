@@ -1,0 +1,164 @@
+.subjectWrapper{
+    padding: 10vh 10px 0 10px;
+    height: 90vh;
+    max-height: 1000px;
+    width: 70%;
+    min-width: 500px;
+    justify-self: center;
+}
+
+.subjectItemWrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    
+}
+
+@media(max-width:1400px){
+    .subjectWrapper{
+        padding: 10vh 5px 0 5px;
+        width: 80%;
+    }
+
+    .subjectWrapper div{
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media(max-width:910px){
+    .subjectWrapper{
+        width: 95%;
+    }
+
+}
+
+
+.subjectItem{
+    border-radius: 35px;
+    justify-self: center;
+    
+    height:300px;
+    width:250px;
+
+    display: grid;
+    grid-template-rows: 3fr 2fr;
+
+}
+
+.subjectItem p{
+    justify-self: center;
+    align-self: center;
+    width: max-content;
+    height: max-content;
+}
+
+
+
+/* when focused onto subject... */
+
+.focusMenu{
+    position: absolute;
+    top:0;
+    left:0;
+    display: grid;
+    width: 250px;
+    margin-top:30px;
+    height: calc(100vh - 100px);
+
+    grid-auto-rows: minmax(50px, 70px);
+}
+
+.focusMenu a{
+    height: max-content;
+    width: max-content;
+    align-self: center;
+    padding-left: 50px;
+}
+
+
+
+.backButton{
+    background:transparent;
+    height: max-content;
+    width: max-content;
+    justify-self: center;
+    align-self: center;
+    border: 1px solid white;
+    border-radius: 25px;
+    padding: 5px 20px 5px 20px;
+    color: white;
+    font-weight: 500;
+}
+
+.subjectContentWrapper{
+    display: grid;
+    grid-template-columns: auto 180px;
+}
+
+.contentButton{
+    display: grid;
+}
+
+.contentButton button{
+    background: none;
+    width: max-content;
+    height: max-content;
+    justify-self: center;
+    border: 1px solid;
+    border-radius: 25px;
+    padding: 5px 20px 5px 20px;
+    margin: 5px 0 5px 0;
+}
+
+.content{
+    width:90%;
+    max-height: calc(100vh-100px);
+    margin: 100px 5% 0 5%;
+
+    display: grid;
+    grid-auto-rows: 60px;
+}
+
+
+.contentObj span{
+    border: royalblue 2px solid;
+    border-radius: 20px;
+    padding: 0 7px 0px 7px;
+    color: royalblue;
+    font-weight: 500;
+    height: max-content;
+}
+
+.editContent{
+    width:90%;
+    max-height: calc(100vh-100px);
+    margin: 100px 5% 0 5%;
+
+    display: grid;
+    grid-auto-rows: max-content;
+
+    font-size: 1.2em;
+}
+
+.editObj{
+    height: 60px;
+    width: 100%;
+    margin: 5px 0 10px 0;
+}
+
+.editObj textarea{
+    resize: none;
+    min-height: 100%;
+    width: 100%;
+    padding: 5px 10px 5px 10px;
+}
+
+.editObj textarea:focus{
+    border:1px solid royalblue;
+    border-radius: 25px;
+}
+
+.submitButton{
+    position: absolute;
+    top:0;
+    right:0;
+}

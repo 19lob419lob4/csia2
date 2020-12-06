@@ -96,6 +96,7 @@
 
 .contentButton{
     display: grid;
+
 }
 
 .contentButton button{
@@ -103,6 +104,7 @@
     width: max-content;
     height: max-content;
     justify-self: center;
+
     border: 1px solid;
     border-radius: 25px;
     padding: 5px 20px 5px 20px;
@@ -161,4 +163,129 @@
     position: absolute;
     top:0;
     right:0;
+}
+
+
+/* flashcard styling */
+
+
+.exitFlashcards{
+    position: absolute;
+    top:0;
+    left:0;
+    height: 100vh;
+    width:250px;
+    background:red;
+    z-index: 3;
+    display: grid;
+}
+
+.exitFlashcards button{
+    background: transparent;
+    height: max-content;
+    width: max-content;
+    justify-self: center;
+    align-self: center;
+    border: 1px solid white;
+    border-radius: 25px;
+    padding: 5px 20px 5px 20px;
+    color: white;
+    font-weight: 500;
+
+}
+
+
+
+.flashCardWrapper{
+    padding: 10vh 10px 0 10px;
+    height: 90vh;
+    max-height: 1000px;
+    width: 70%;
+    min-width: 500px;
+    justify-self: center;
+}
+
+.flashCardItemWrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    height: 100%
+    
+}
+
+@media(max-width:1400px){
+    .flashCardWrapper{
+        padding: 10vh 5px 0 5px;
+        width: 80%;
+    }
+
+    .flashCardItemWrapper{
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media(max-width:910px){
+    .flashCardWrapper{
+        width: 95%;
+    }
+
+}
+
+
+.flashCardTopicItem{
+    border-radius: 35px;
+    justify-self: center;
+    
+    height:300px;
+    width:250px;
+
+    display: grid;
+    grid-template-rows: 3fr 2fr;
+    background: linear-gradient(to bottom, red, red 60%, #d3d3d3 60%, #d3d3d3 100%);
+
+}
+
+.flashCardTopicItem p{
+    justify-self: center;
+    align-self: center;
+    width: max-content;
+    height: max-content;
+}
+
+
+.flashcard{
+    width: 80%;
+    margin: 100px 10% 5%;
+    background: white;
+    border:3px solid red;
+    border-radius: 25px;
+    height: 60%;
+    display: grid;
+}
+
+.flashcard p{
+    width: max-content;
+    height: max-content;
+    justify-self: center;
+    align-self: center;
+}
+
+.flashCardButtons{
+    position: absolute;
+    bottom: 10%;
+    left:50%;
+    transform: translateX(-50%);
+    width:400px;
+    display: grid;
+    grid-template-columns:1fr 1fr 1fr;
+}
+
+.flashCardButtons button{
+    font-size: 1.05em;
+    margin: 20px;
+    padding: 5px 0 5px 0;
+    border-radius: 25px;
+    border: 2px solid red;
+    background: none;
+    color:red;
+    font-weight: 500;
 }

@@ -10,7 +10,9 @@
 .subjectItemWrapper{
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    
+    grid-row-gap: 30px;
+    overflow: auto;
+    height: 100%;
 }
 
 @media(max-width:1400px){
@@ -42,6 +44,7 @@
     display: grid;
     grid-template-rows: 3fr 2fr;
 
+    position: relative;
 }
 
 .subjectItem p{
@@ -51,6 +54,69 @@
     height: max-content;
 }
 
+.deleteSubject{
+    position: absolute;
+    right:20px;
+    top:20px;
+    z-index: 10;
+    
+    border-radius: 50px;
+    height: 20px;
+    width: 20px;
+    
+}
+
+.deleteSubject span{
+    height: max-content;
+    width: max-content;
+    justify-self: center;
+    align-self: center;
+    color: royalblue;
+    transform: scaleY(0.8);
+}
+
+.addSubjectItem{
+    background:rgb(211, 211, 211);
+    display: grid;
+}
+
+.addSubjectItem p{
+    grid-row: 1/10;
+    font-size: 4em;
+    font-weight: 600;
+}
+
+.addSubjectItem form{
+    grid-row: 1/10;
+    display: grid;
+    background: transparent;
+    grid-template-rows: 3fr 2fr;
+}
+
+.addSubjectInput{
+    background: transparent;
+    justify-self: center;
+    width: 80%;
+    font-size: 1.1em;
+    text-align: center;
+    color:royalblue;
+}
+
+.addSubjectItem button{
+    background: royalblue;
+    border-radius: 0 0 25px 25px;
+    color:white;
+}
+
+.editSubjects{
+    position: absolute;
+    top:50%;
+    right:70px;
+    padding: 5px 10px 5px 10px;
+    border: 2px royalblue solid;
+    border-radius: 25px;
+    color:royalblue;
+}
 
 
 /* when focused onto subject... */
@@ -130,6 +196,8 @@
     height: max-content;
 }
 
+/* note editor styling */
+
 .editContent{
     width:90%;
     max-height: calc(100vh-100px);
@@ -208,8 +276,8 @@
 .flashCardItemWrapper{
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    height: 100%
-    
+    height: 100%;
+    grid-row-gap: 30px;
 }
 
 @media(max-width:1400px){
@@ -274,9 +342,9 @@
     bottom: 10%;
     left:50%;
     transform: translateX(-50%);
-    width:400px;
+    width:350px;
     display: grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:1fr 1fr ;
 }
 
 .flashCardButtons button{
@@ -288,4 +356,30 @@
     background: none;
     color:red;
     font-weight: 500;
+}
+
+.progressBar{
+    justify-self: center;
+    border:2px solid red;
+    border-radius: 25px;
+    width: 70%;
+    height: 25px;
+    position: absolute;
+    top:0; 
+    left:50%;
+    transform: translate(-50%,0%);
+    display: grid;
+}
+
+.bar{
+    border-radius: 25px;
+    background: red;
+}
+
+
+.completeDeck{
+    position: absolute;
+    top:40%;
+    left:50%;
+    transform: translate(-50%, -50%);
 }

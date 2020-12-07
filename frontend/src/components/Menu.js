@@ -11,7 +11,6 @@ class Menu extends React.Component {
     this.state = {
         loadingData: true,
         subjects:null,
-        addSubject:false,
         newSubject:'',
 
 
@@ -19,6 +18,10 @@ class Menu extends React.Component {
         subjectData: null,
         activeSubject: 0,
         activeTopic: 0,
+
+        addSubjectMode: false,
+        addSubject:'',
+        deleteSubjectMode: false,
 
         keywords: ['is','are','because'],
 
@@ -32,15 +35,22 @@ class Menu extends React.Component {
         flashcardMode: false,
         flashcardDeck:[],
         activeDeck: 0,
-        openDeck: false
+        openDeck: false,
+        flashcardZPos: [],
+        doneCards: [],
+        doneCount:0,
+        cardReveal:false
 
     }
-    // this.addSubject.bind = this.addSubject.bind(this);
+    this.addSubject = this.addSubject.bind(this);
     // this.cancelAddSubject.bind = this.cancelAddSubject.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.changeEditValue = this.changeEditValue.bind(this);
+    this.updateSubjects = this.updateSubjects.bind(this);
+    this.removeSubject = this.removeSubject.bind(this);
     this.addEditObj = this.addEditObj.bind(this);
     this.loadFlashcardDeck = this.loadFlashcardDeck.bind(this);
+    this.rotateFlashcard = this.rotateFlashcard.bind(this);
 
   }
 
@@ -50,6 +60,10 @@ class Menu extends React.Component {
 
     this.setState({editValues:currentValues, editingObj:x, editPos:[event.target.selectionStart,event.target.selectionEnd]})
 
+  }
+
+  addSubject(e){
+    this.setState({addSubject:e.target.value})
   }
 
   changeEditValue(event){
@@ -126,31 +140,71 @@ class Menu extends React.Component {
   
   loadSubject(x){
 
+    if(this.state.deleteSubjectMode==false){
+      this.setState({activeSubject:x, subjectData:this.state.subjects[x]})
+
+      if(this.props.mode==0){
+        this.setState({subjectFocus:true, flashcardMode:false})
+      }else{
+        this.setState({flashcardMode:true, subjectFocus:false})
+      }
   
+      //setup editable content...
+      let values = [];
+      
+      let statementList;
 
-    this.setState({activeSubject:x, subjectData:this.state.subjects[x]})
+      if(this.state.subjects[x].topics[this.state.activeTopic]!=undefined){
+        statementList = this.state.subjects[x].topics[this.state.activeTopic].content;
+        for(let i=0; i<statementList.length; i++){
+          let before = statementList[i].before;
+          let keyword = statementList[i].keyword ==-1?'':this.state.keywords[statementList[i].keyword];
+          let after = this.renderARE(statementList[i].after);
+    
+    
+    
+          values.push(before + ' ' + keyword + ' ' + after);        
+        }
+      }
 
-    if(this.props.mode==0){
-      this.setState({subjectFocus:true, flashcardMode:false})
-    }else{
-      this.setState({flashcardMode:true, subjectFocus:false})
+
+  
+      this.setState({editValues:values});
     }
 
-    //setup editable content...
-    let values = [];
-    let statementList = this.state.subjects[x].topics[this.state.activeTopic].content;
-    for(let i=0; i<statementList.length; i++){
-      let before = statementList[i].before;
-      let keyword = statementList[i].keyword ==-1?'':this.state.keywords[statementList[i].keyword];
-      let after = this.renderARE(statementList[i].after);
 
-
-
-      values.push(before + ' ' + keyword + ' ' + after);        
-    }
-
-    this.setState({editValues:values});
   }
+
+  updateSubjects=async(e)=>{
+    e.preventDefault();
+    axios.post('http://localhost:3001/subjects/',{subjectName:this.state.addSubject})
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error =>{
+        console.log(error)
+      })
+    this.forceUpdate();
+    this.setState({addSubjectMode:false,addSubject:''})
+    setTimeout(()=>this.getData(),100);
+  }
+
+
+  removeSubject=async(id,e)=>{
+    e.preventDefault();
+    let deleteAddress = 'http://localhost:3001/subjects/' + id;
+    axios.delete(deleteAddress,{id:id})
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error =>{
+        console.log(error)
+      })
+    this.forceUpdate();
+    //
+    setTimeout(()=>this.getData(),100);
+  }
+
 
   addEditObj(){
     if(this.state.newEditValue!=''){
@@ -189,18 +243,29 @@ class Menu extends React.Component {
 
           let afterARR = this.saveARE(after);
           //update keywordStatements
+
+          let updateStatus;
+          if((this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status==1)||(this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status==undefined)){
+            updateStatus = 0
+          }else{
+            updateStatus = this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status;
+          }
+
+          //status(for flashcard) definitions... (0 - valid card, 1 - invalid)
           
-          keywordStatement = {before:before, keyword:i, after:afterARR};
+          keywordStatement = {before:before, keyword:i, after:afterARR, status:updateStatus};
 
           break;
-          }
+        }
         
       }
       if(keywordStatement!=null){
+        // keywordStatement.status = this.state.editValues[j]
+
         updatedStatements.push(keywordStatement)
       }else{
         if(!(!this.state.editValues[j].replace(/\s/g, '').length)){
-          updatedStatements.push({before:this.state.editValues[j], keyword:-1, after:[]})
+          updatedStatements.push({before:this.state.editValues[j], keyword:-1, after:[], status:1})
         }
       }
     }
@@ -223,16 +288,109 @@ class Menu extends React.Component {
 
     //return back to menu
     this.setState({editMode:false, editValues:[]})
-    this.forceUpdate()
+    this.forceUpdate();
     this.switchTopic(this.state.activeTopic)
+    this.forceUpdate();
   }
 
 
   loadFlashcardDeck(x){
-    this.forceUpdate()
-    let deckData = this.state.subjectData.topics[x].content
-    this.setState({flashcardDeck:deckData, openDeck:true})
+    this.forceUpdate();
+    let deckData = this.state.subjectData.topics[x].content;
 
+    let finalDeckData = []
+
+    for(let i=0; i<deckData.length; i++){
+      if(deckData[i].status!=1){
+        finalDeckData.push(deckData[i])
+      }
+    }
+
+    let zPos = [];
+    let doneCards = [];
+
+    for(let z=0; z<finalDeckData.length; z++){
+      zPos.push(z);
+      doneCards.push('grid');
+    }
+
+    this.setState({flashcardDeck:finalDeckData, flashcardZPos:zPos, doneCards:doneCards, openDeck:true})
+  }
+
+  rotateFlashcard(doneCard){
+    //doneCard is boolean value
+    //check if card is 'good' or 'again' for user...
+
+    if(doneCard){
+      //get card index using the zpos...
+      //ie if [2,3,4,0,1]...current top card is at index 3 which is 4 the greatest number...
+      //the gratest number = length of zpos array-1
+
+      let cardIndex = this.state.flashcardZPos.indexOf(this.state.flashcardZPos.length-1);
+
+      //now update the doneCards array...to display none at cardIndex
+
+      let currentCards = this.state.doneCards;
+      currentCards[cardIndex] = 'none';
+
+      let doneCount = this.state.doneCount;
+      doneCount++;
+
+      this.setState({doneCards:currentCards,doneCount:doneCount}) 
+    }
+
+    //finally rotate the card z positions...no matter if it is 'good' or 'again'
+    let currentZpos = this.state.flashcardZPos;
+    let topZpos = currentZpos[0];
+    currentZpos.shift();
+    
+    currentZpos.push(topZpos);
+
+    this.setState({flashcardZPos:currentZpos, cardReveal:false})
+
+  }
+
+  progressBar(){
+
+    let template = 'repeat(' + this.state.doneCards.length + ',1fr)'
+
+    let style = {
+      gridTemplateColumns: template
+    }
+
+    return style;
+  }
+
+  progressBarInner(){
+    let gridColumn;
+
+    let style;
+
+    if(this.state.doneCount==0){
+      style = {
+        background:'transparent'
+      }
+    }else{
+      gridColumn= '1/' + (this.state.doneCount + 1);
+
+      style = {
+        gridColumn: gridColumn
+      }
+    }
+    return style;
+  }
+
+  flashcardQuestion(key){
+
+    let premodifer;
+
+    if(key==2){
+      premodifer = 'Why '
+    }else{
+      premodifer = 'What ' + this.state.keywords[key] + ' '
+    }
+
+    return premodifer
   }
 
   render(){
@@ -247,6 +405,9 @@ class Menu extends React.Component {
         onClick={()=>{this.loadSubject(x)}}
         >
 
+          <button 
+          style = {this.state.deleteSubjectMode?{display:'grid'}:{display:'none'}}
+          className="deleteSubject" onClick={(e)=>this.removeSubject(subject._id,e)}><span>X</span></button>
           
           <p>{subject.subjectName}</p>
 
@@ -275,7 +436,7 @@ class Menu extends React.Component {
 
     let content;
 
-    if(this.state.subjectFocus){
+    if((this.state.subjectFocus)&&(this.state.subjectData.topics[this.state.activeTopic]!=undefined)){
       let statementList = this.state.subjectData.topics[this.state.activeTopic].content;
       content = statementList.map((statement, x)=>
         <div className='contentObj' key={uniqid()}>
@@ -323,8 +484,20 @@ class Menu extends React.Component {
 
     if(this.state.openDeck){
       flashcardDeck = this.state.flashcardDeck.map((card, x)=>
-        <div key={uniqid()} className='flashcard' style={{zIndex:x, position:'absolute',top:0, left:0}}>
-          <p>{card.before}</p>
+        <div key={uniqid()} 
+        className='flashcard' 
+        style={{display:this.state.doneCards[x] ,zIndex:this.state.flashcardZPos[x], position:'absolute',top:0, left:0}}
+        onClick={()=>{this.setState({cardReveal:true})}}>
+          {this.state.cardReveal?(
+          <p>
+            {card.after}
+          </p>):
+          
+          (<p>
+            {this.flashcardQuestion(card.keyword)}
+            {card.before}?
+          </p>)}
+          
         </div>
       )
     }
@@ -339,12 +512,29 @@ class Menu extends React.Component {
         {this.state.subjectFocus==false?(
 
           <div className='subjectWrapper'  style={this.state.flashcardMode?{display:'none'}:{}}>
+
+            <button onClick={()=>this.setState({deleteSubjectMode:true})} className="editSubjects">edit</button>
                       
-          {this.state.loadingData || !this.state.subjects ?(<div></div>):(
+            {this.state.loadingData || !this.state.subjects ?(<div></div>):(
 
-          <div className='subjectItemWrapper'>{renderSubjects}</div>   
+            <div className='subjectItemWrapper'>
+              {renderSubjects}
+              <a className="subjectItem addSubjectItem" onClick={()=>this.setState({addSubjectMode:true})}>
 
-          )}
+                {this.state.addSubjectMode?(
+                <form onSubmit={this.updateSubjects}>
+                  <input className="addSubjectInput" type="text" value={this.state.addSubject} onChange={this.addSubject}></input>
+                  <button type="submit">Add</button>
+                </form>):(<p>+</p>)}
+                
+
+
+
+
+              </a>
+            </div>   
+
+            )}
           </div>
         ):(
 
@@ -417,19 +607,41 @@ class Menu extends React.Component {
               
               <div className='flashCardItemWrapper'>
                 <div className="exitFlashcards">
-                  <button onClick={()=>this.setState({flashcardMode:false})}>Back</button>
+                  <button style={this.state.openDeck?{display:'none'}:{}} onClick={()=>this.setState({flashcardMode:false,})}>Back</button>
+                  <button style={this.state.openDeck==false?{display:'none'}:{}} 
+                  onClick={()=>this.setState({
+                      openDeck:false,
+                      flashcardZPos: [],
+                      doneCards: [],
+                      doneCount:0
+                    
+                    })}>Done</button>
                 </div>
 
                 
                 {this.state.openDeck==false?flashcardTopicMenu:(
                 <div style={{position:'relative', gridColumn:'1/10'}}>
+
+                  <div className="progressBar" style={this.progressBar()}>
+                    <div className="bar" style={this.progressBarInner()}></div>
+                  </div>
+
                   {flashcardDeck}
-                  <div className="flashCardButtons">
-                    <button>Again</button>
-                    <button>OK</button>
-                    <button>Good</button>
+                  <div className="flashCardButtons" style={((this.state.doneCount==this.state.doneCards.length)||(!this.state.cardReveal))?{pointerEvents:'none'}:{}}>
+                    <button style={((this.state.doneCount==this.state.doneCards.length)||(!this.state.cardReveal))?{color:'grey', borderColor:'grey'}:{}} onClick={()=>this.rotateFlashcard(false)}>Again</button>
+                    <button style={((this.state.doneCount==this.state.doneCards.length)||(!this.state.cardReveal))?{color:'grey', borderColor:'grey'}:{}} onClick={()=>this.rotateFlashcard(true)}>Good</button>
+
+
+                    
 
                   </div>
+
+                  <div style={this.state.doneCount==this.state.doneCards.length?{display:'grid'}:{display:'none'}} className="completeDeck">
+                    <h1>Congrats!</h1>
+                    <p>You have completed this deck</p>
+                  </div>
+
+
                 </div>)}
                 
                 

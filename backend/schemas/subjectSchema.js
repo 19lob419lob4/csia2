@@ -6,7 +6,7 @@ const Topic = require('./topicSchema');
 const subjectSchema = mongoose.Schema({
     subjectName: String,
 
-    topics: [Topic],
+    topics: {type:[Topic],default:[]},
 
     lastEdited: {type:Date,default: Date.now },
 

@@ -37,7 +37,7 @@ mongoose
 
         });
 
-
+        //edits to content
         app.put("/subjects/:id", async(req,res)=>{
             try{
                 var subject = await Subject.findByIdAndUpdate({_id:req.params.id},req.body).exec();
@@ -48,8 +48,27 @@ mongoose
             }
         })
 
+        //add a new subject...
+        app.post("/subjects",async(req,res)=>{
+            try{
+                var newSubject = new Subject(req.body)
+                var result = await newSubject.save();
+                res.send(result)
+            }
+            catch(err){
+                res.status(501).send(err)
+            }
+        })
 
-
+        //delete a subject
+        app.delete("/subjects/:id",async(req,res)=>{
+            try{
+                var result = await Subject.deleteOne({_id: req.params.id}).exec();
+                res.send(result);
+            } catch(err) {
+                res.status(500).send(err)
+            }
+        })
 
 
 

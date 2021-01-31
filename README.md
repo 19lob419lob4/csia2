@@ -1,9 +1,9 @@
 Prerequisites to programming
 
-a.	Running NPM start to initialize node project
-b.	Installing packages Express/Mongoose/Body-parser/CORS
-c.	Initialising new React Project
-d.	Installing packages Axios/Uniquid
+a.	Running NPM start to initialize node project /n
+b.	Installing packages Express/Mongoose/Body-parser/CORS /n
+c.	Initialising new React Project /n
+d.	Installing packages Axios/Uniquid /n
 
 Techniques used to create final product
 

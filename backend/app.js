@@ -7,6 +7,7 @@ var cors = require('cors');
 // import subject schema
 
 const Subject = require('./schemas/subjectSchema');
+const Topic = require('./schemas/topicSchema-ClassVer');
 
 
 // connect to mongodb cluster databse with mongoose
@@ -24,10 +25,8 @@ mongoose
         app.use(bodyParser.urlencoded({ extended: true}));
         app.use(cors());
 
+        // get data
         app.get('/subjects', async(req,res)=>{
-
-            //- res.send('Cardify Api')
-
             try{
                 var subjects = await Subject.find().exec();
                 res.send(subjects);
@@ -48,7 +47,7 @@ mongoose
             }
         })
 
-        //add a new subject...
+        //add a new subject
         app.post("/subjects",async(req,res)=>{
             try{
                 var newSubject = new Subject(req.body)
@@ -70,13 +69,32 @@ mongoose
             }
         })
 
+        //add a subtopic
+        app.post("/subtopics/:id", async(req,res)=>{
+            try{
+                var topic = new Topic(req.body)
+                var subject = await Subject.findById({_id:req.params.id});            
+                var currentTopics = subject.topics;
+                currentTopics.push(topic);
+                var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
+                res.send(result)
+            }catch(err) {
+                res.status(501).send(err)
+            }
+        })
 
-
-
-
-
-
-
+        //delete a subtopic
+        app.delete("/subtopics/:id",async(req,res)=>{
+            try{
+                var subject = await Subject.findById({_id:req.params.id});            
+                var currentTopics = subject.topics;
+                currentTopics.splice(req.body.deleteIndex,1);
+                var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
+                res.send(result)
+            }catch(err) {
+                res.status(501).send(err)
+            }
+        })
 
 
         // start server on port 3001

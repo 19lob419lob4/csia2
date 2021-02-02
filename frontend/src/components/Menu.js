@@ -23,6 +23,10 @@ class Menu extends React.Component {
         addSubject:'',
         deleteSubjectMode: false,
 
+        addSubtopicMode: false,
+        addSubtopic:'',
+        
+
         keywords: ['is','are','because'],
 
         editMode: false,
@@ -47,6 +51,12 @@ class Menu extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.changeEditValue = this.changeEditValue.bind(this);
     this.updateSubjects = this.updateSubjects.bind(this);
+
+
+    this.addSubtopic = this.addSubtopic.bind(this);
+    this.removeSubtopic = this.removeSubtopic.bind(this);
+
+    this.updateSubtopics = this.updateSubtopics.bind(this);
     this.removeSubject = this.removeSubject.bind(this);
     this.addEditObj = this.addEditObj.bind(this);
     this.loadFlashcardDeck = this.loadFlashcardDeck.bind(this);
@@ -64,6 +74,10 @@ class Menu extends React.Component {
 
   addSubject(e){
     this.setState({addSubject:e.target.value})
+  }
+
+  addSubtopic(e){
+    this.setState({addSubtopic:e.target.value})
   }
 
   changeEditValue(event){
@@ -105,16 +119,19 @@ class Menu extends React.Component {
     this.setState({activeTopic:x})
 
     let values = [];
-    let statementList = this.state.subjects[this.state.activeSubject].topics[x].content;
-    for(let i=0; i<statementList.length; i++){
-      let before = statementList[i].before;
-      let keyword = statementList[i].keyword ==-1?'':this.state.keywords[statementList[i].keyword];
-      let after = this.renderARE(statementList[i].after);
-
-
-
-      values.push(before + ' ' + keyword + ' ' + after);        
+    if(typeof (this.state.subjects[this.state.activeSubject].topics[x]) != 'undefined'){
+      let statementList = this.state.subjects[this.state.activeSubject].topics[x].content;
+      for(let i=0; i<statementList.length; i++){
+        let before = statementList[i].before;
+        let keyword = statementList[i].keyword ==-1?'':this.state.keywords[statementList[i].keyword];
+        let after = this.renderARE(statementList[i].after);
+  
+  
+  
+        values.push(before + ' ' + keyword + ' ' + after);        
+      }
     }
+
 
     this.setState({editValues:values});
 
@@ -189,6 +206,66 @@ class Menu extends React.Component {
     setTimeout(()=>this.getData(),100);
   }
 
+  updateSubtopics = async(e)=>{
+    e.preventDefault();
+
+    let newsubtopic = this.state.addSubtopic;
+
+    let postAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;
+    axios.post(postAddress,{topicName:newsubtopic})
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error =>{
+        console.log(error)
+    })
+    this.forceUpdate();
+
+
+    let staticTopics = this.state.subjects[this.state.activeSubject].topics;
+    staticTopics.push({
+      topicName:this.state.addSubtopic,
+      content:[]
+    })
+
+    let updatedStaticData= this.state.subjects;
+    updatedStaticData[this.state.activeSubject].topics = staticTopics;
+
+
+    this.setState({addSubtopicMode:false,addSubtopic:'',subjects:updatedStaticData,activeTopic:this.state.activeTopic+1});
+    
+    this.switchTopic(this.state.activeTopic)
+    
+  }
+
+  removeSubtopic=async(e)=>{
+    e.preventDefault()
+
+    let deleteAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;;
+    axios.delete(deleteAddress,{deleteIndex:this.state.activeTopic})
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error =>{
+        console.log(error)
+    });
+    
+    this.forceUpdate();
+    setTimeout(()=>this.getData(),100);
+
+
+    let staticTopics = this.state.subjects[this.state.activeSubject].topics;
+    staticTopics.splice(this.state.activeTopic,1);
+
+    let updatedStaticData= this.state.subjects;
+    updatedStaticData[this.state.activeSubject].topics = staticTopics;
+
+    this.setState({subjects:updatedStaticData,activeTopic:0})
+    setTimeout(()=>this.switchTopic(this.state.activeTopic),100);
+    this.forceUpdate();
+    console.log(this.state.activeTopic)
+  }
+
 
   removeSubject=async(id,e)=>{
     e.preventDefault();
@@ -203,6 +280,7 @@ class Menu extends React.Component {
     this.forceUpdate();
     //
     setTimeout(()=>this.getData(),100);
+    this.forceUpdate();
   }
 
 
@@ -245,9 +323,13 @@ class Menu extends React.Component {
           //update keywordStatements
 
           let updateStatus;
-          if((this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status==1)||(this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status==undefined)){
+          if(typeof(this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j])=='undefined'){
             updateStatus = 0
-          }else{
+          }else if(this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status==1){
+            updateStatus = 0
+          }
+          
+          else{
             updateStatus = this.state.subjects[this.state.activeSubject].topics[this.state.activeTopic].content[j].status;
           }
 
@@ -271,6 +353,7 @@ class Menu extends React.Component {
     }
     //update database...
     let currentData = this.state.subjectData;
+
     
     currentData.topics[this.state.activeTopic].content = updatedStatements;
     
@@ -428,7 +511,6 @@ class Menu extends React.Component {
       focusMenu = subtopics.map((item,x) =>
         <a key={uniqid()} onClick={()=>this.switchTopic(x)}>{item.topicName}</a>
       );
-
     }
 
 
@@ -526,10 +608,6 @@ class Menu extends React.Component {
                   <input className="addSubjectInput" type="text" value={this.state.addSubject} onChange={this.addSubject}></input>
                   <button type="submit">Add</button>
                 </form>):(<p>+</p>)}
-                
-
-
-
 
               </a>
             </div>   
@@ -544,6 +622,20 @@ class Menu extends React.Component {
             <div className='focusMenu' style={this.props.mode==0?{backgroundColor: 'royalblue'}:{backgroundColor: 'red'}}>
               <button className ='backButton' onClick={()=>this.setState({subjectFocus:false, activeTopic:0})}>Back</button>
               {focusMenu}
+              <form onSubmit={this.updateSubtopics} class="addSubtopicForm">
+                <textarea
+                value={this.state.addSubtopic}
+                onChange={(e)=>this.addSubtopic(e)}
+                onFocus={()=>this.setState({addSubtopicMode:true})}
+                >
+                
+                
+
+                </textarea>
+                <button 
+                type="submit"
+                style={((this.state.addSubtopicMode)&&(this.state.addSubtopic.length>0))?{background: 'white', pointerEvents:'initial',borderColor:'white',color:'blue'}:{bacgkround: 'grey', pointerEvents:'none',borderColor:'grey',color:'grey'}}>Add</button>
+              </form>
             </div>
 
             ):(
@@ -588,7 +680,7 @@ class Menu extends React.Component {
             {this.state.editMode==false?(
             <div className='contentButton'>
               <button onClick={()=>{this.setState({editMode:true})}} style={{alignSelf:'flex-end'}}>Edit</button>
-              <button>Cardify</button>
+              <button onClick={this.removeSubtopic}>Delete</button>
             </div>
             ):(<div style={{display:'none'}}></div>)}
 

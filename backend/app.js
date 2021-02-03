@@ -84,11 +84,13 @@ mongoose
         })
 
         //delete a subtopic
-        app.delete("/subtopics/:id",async(req,res)=>{
+        app.put("/subtopics/:id",async(req,res)=>{
             try{
                 var subject = await Subject.findById({_id:req.params.id});            
                 var currentTopics = subject.topics;
+
                 currentTopics.splice(req.body.deleteIndex,1);
+
                 var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
                 res.send(result)
             }catch(err) {

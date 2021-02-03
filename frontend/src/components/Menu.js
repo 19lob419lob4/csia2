@@ -107,12 +107,24 @@ class Menu extends React.Component {
         .then(response =>{   
             let data = response.data;
             this.setState({subjects:data, loadingData:false});
-            // console.log(data)
+            // //console.log(data)
 
         })
         .catch(error =>{
-            console.log(error) //return error fail to retrieve data
+            //console.log(error) //return error fail to retrieve data
         })
+  }
+
+  async updateSubjectData(){
+    axios.get('http://localhost:3001/subjects')
+    .then(response =>{   
+        let data = response.data;
+        this.setState({subjectData:data[this.state.activeSubject]});
+
+    })
+    .catch(error =>{
+        //console.log(error) //return error fail to retrieve data
+    })
   }
 
   switchTopic(x){
@@ -196,10 +208,10 @@ class Menu extends React.Component {
     e.preventDefault();
     axios.post('http://localhost:3001/subjects/',{subjectName:this.state.addSubject})
       .then(response => {
-        console.log(response)
+        //console.log(response)
       })
       .catch(error =>{
-        console.log(error)
+        //console.log(error)
       })
     this.forceUpdate();
     this.setState({addSubjectMode:false,addSubject:''})
@@ -214,10 +226,10 @@ class Menu extends React.Component {
     let postAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;
     axios.post(postAddress,{topicName:newsubtopic})
       .then(response => {
-        console.log(response)
+        //console.log(response)
       })
       .catch(error =>{
-        console.log(error)
+        //console.log(error)
     })
     this.forceUpdate();
 
@@ -242,12 +254,12 @@ class Menu extends React.Component {
     e.preventDefault()
 
     let deleteAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;;
-    axios.delete(deleteAddress,{deleteIndex:this.state.activeTopic})
+    axios.put(deleteAddress,{deleteIndex:this.state.activeTopic})
       .then(response => {
-        console.log(response)
+        //console.log(response)
       })
       .catch(error =>{
-        console.log(error)
+        //console.log(error)
     });
     
     this.forceUpdate();
@@ -255,15 +267,18 @@ class Menu extends React.Component {
 
 
     let staticTopics = this.state.subjects[this.state.activeSubject].topics;
+
     staticTopics.splice(this.state.activeTopic,1);
 
     let updatedStaticData= this.state.subjects;
     updatedStaticData[this.state.activeSubject].topics = staticTopics;
 
+    this.switchTopic(0)
     this.setState({subjects:updatedStaticData,activeTopic:0})
-    setTimeout(()=>this.switchTopic(this.state.activeTopic),100);
+    
+    setTimeout(()=>this.updateSubjectData(),100);
     this.forceUpdate();
-    console.log(this.state.activeTopic)
+    
   }
 
 
@@ -272,10 +287,10 @@ class Menu extends React.Component {
     let deleteAddress = 'http://localhost:3001/subjects/' + id;
     axios.delete(deleteAddress,{id:id})
       .then(response => {
-        console.log(response)
+        //console.log(response)
       })
       .catch(error =>{
-        console.log(error)
+        //console.log(error)
       })
     this.forceUpdate();
     //
@@ -357,15 +372,15 @@ class Menu extends React.Component {
     
     currentData.topics[this.state.activeTopic].content = updatedStatements;
     
-    //console.log(currentData)
+    ////console.log(currentData)
 
     let putAddress = 'http://localhost:3001/subjects/' + this.state.subjectData._id;
     axios.put(putAddress,currentData)
       .then(response => {
-        console.log(response)
+        //console.log(response)
       })
       .catch(error =>{
-        console.log(error)
+        //console.log(error)
       })
     
 
@@ -500,7 +515,7 @@ class Menu extends React.Component {
 
         </a>
      
-        );
+        )
     }
 
 
@@ -595,7 +610,18 @@ class Menu extends React.Component {
 
           <div className='subjectWrapper'  style={this.state.flashcardMode?{display:'none'}:{}}>
 
-            <button onClick={()=>this.setState({deleteSubjectMode:true})} className="editSubjects">edit</button>
+            <button 
+            onClick={()=>this.setState({deleteSubjectMode:true})} 
+            className="editSubjects"
+            style={this.state.deleteSubjectMode?{display:'none'}:{display:'initial'}}
+            >edit</button>
+
+            <button
+             onClick={()=>this.setState({deleteSubjectMode:false})} 
+            className="editSubjects"
+            style={!this.state.deleteSubjectMode?{display:'none'}:{display:'initial'}}
+            >done</button>
+
                       
             {this.state.loadingData || !this.state.subjects ?(<div></div>):(
 

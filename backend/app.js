@@ -9,101 +9,144 @@ var cors = require('cors');
 const Subject = require('./schemas/subjectSchema');
 const Topic = require('./schemas/topicSchema-ClassVer');
 
+// var login = express();
+// login.use(bodyParser.json());
+// login.use(bodyParser.urlencoded({ extended: true}));
+// login.use(cors());
 
-// connect to mongodb cluster databse with mongoose
+var app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true}));
+app.use(cors());
 
-const  mongoAtlasUri ="mongodb+srv://19lob4:test1234@cardify.onbct.mongodb.net/subjects?retryWrites=true&w=majority";
+var loggedIn = false;
 
-mongoose
-    .connect(mongoAtlasUri,{ useNewUrlParser: true, useUnifiedTopology: true, dbName: 'Cardify' })
-    .then(()=>{
-        console.log("Mongoose - Sucess!")
-        // the following lines make up the CRUD api...
+var mongoServer = async(mongoAtlasUri,res)=>{
+    // connect to mongodb cluster databse with mongoose
+    mongoose
+        .connect(mongoAtlasUri,{ useNewUrlParser: true, useUnifiedTopology: true, dbName: 'Cardify' })
+        .then(()=>{
+            res.send({passwordCorrect:true})
+            loggedIn = true;
+            console.log("Mongoose - Sucess!");
+        
+            // the following lines make up the CRUD api...
+            
 
-        var app = express();
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({ extended: true}));
-        app.use(cors());
-
-        // get data
-        app.get('/subjects', async(req,res)=>{
-            try{
-                var subjects = await Subject.find().exec();
-                res.send(subjects);
-            } catch(err){
-                res.status(500).send(err);
-            }
-
-        });
-
-        //edits to content
-        app.put("/subjects/:id", async(req,res)=>{
-            try{
-                var subject = await Subject.findByIdAndUpdate({_id:req.params.id},req.body).exec();
-                // subject.set(req.body)            
-                res.send(subject)
-            } catch(err) {
-                res.status(500).send(err)
-            }
+            // get data
+            app.get('/subjects', async(req,res)=>{
+                try{
+                    var subjects = await Subject.find().exec();
+                    res.send(subjects);
+                } catch(err){
+                    res.status(500).send(err);
+                }
+    
+            });
+    
+            //edits to content
+            app.put("/subjects/:id", async(req,res)=>{
+                try{
+                    var subject = await Subject.findByIdAndUpdate({_id:req.params.id},req.body).exec();
+                    // subject.set(req.body)            
+                    res.send(subject)
+                } catch(err) {
+                    res.status(500).send(err)
+                }
+            })
+    
+            //add a new subject
+            app.post("/subjects",async(req,res)=>{
+                try{
+                    var newSubject = new Subject(req.body)
+                    var result = await newSubject.save();
+                    res.send(result)
+                }
+                catch(err){
+                    res.status(501).send(err)
+                }
+            })
+    
+            //delete a subject
+            app.delete("/subjects/:id",async(req,res)=>{
+                try{
+                    var result = await Subject.deleteOne({_id: req.params.id}).exec();
+                    res.send(result);
+                } catch(err) {
+                    res.status(500).send(err)
+                }
+            })
+    
+            //add a subtopic
+            app.post("/subtopics/:id", async(req,res)=>{
+                try{
+                    var topic = new Topic(req.body)
+                    var subject = await Subject.findById({_id:req.params.id});            
+                    var currentTopics = subject.topics;
+                    currentTopics.push(topic);
+                    var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
+                    res.send(result)
+                }catch(err) {
+                    res.status(501).send(err)
+                }
+            })
+    
+            //delete a subtopic
+            app.put("/subtopics/:id",async(req,res)=>{
+                try{
+                    var subject = await Subject.findById({_id:req.params.id});            
+                    var currentTopics = subject.topics;
+    
+                    currentTopics.splice(req.body.deleteIndex,1);
+    
+                    var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
+                    res.send(result)
+                }catch(err) {
+                    res.status(501).send(err)
+                }
+            })
+            // start mongo server on port 3001
+            //app.listen(3001,()=>console.log('Active on port 3001'));
+            return true
+    
         })
-
-        //add a new subject
-        app.post("/subjects",async(req,res)=>{
-            try{
-                var newSubject = new Subject(req.body)
-                var result = await newSubject.save();
-                res.send(result)
+        .catch(
+            e => {
+                console.log('mongo failed to connect')
+                res.send({passwordCorrect:false})
+                return false
             }
-            catch(err){
-                res.status(501).send(err)
-            }
-        })
+        );
 
-        //delete a subject
-        app.delete("/subjects/:id",async(req,res)=>{
-            try{
-                var result = await Subject.deleteOne({_id: req.params.id}).exec();
-                res.send(result);
-            } catch(err) {
-                res.status(500).send(err)
-            }
-        })
+        
+}
 
-        //add a subtopic
-        app.post("/subtopics/:id", async(req,res)=>{
-            try{
-                var topic = new Topic(req.body)
-                var subject = await Subject.findById({_id:req.params.id});            
-                var currentTopics = subject.topics;
-                currentTopics.push(topic);
-                var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
-                res.send(result)
-            }catch(err) {
-                res.status(501).send(err)
-            }
-        })
+//authentication
+app.post('/login', async(req,res)=>{
+    try{
 
-        //delete a subtopic
-        app.put("/subtopics/:id",async(req,res)=>{
-            try{
-                var subject = await Subject.findById({_id:req.params.id});            
-                var currentTopics = subject.topics;
+        let password = req.body.password;
+        let mongoAtlasUri ="mongodb+srv://19lob4:"+ password +"@cardify.onbct.mongodb.net/subjects?retryWrites=true&w=majority";
+        //res.send();
+        mongoServer(mongoAtlasUri,res);
 
-                currentTopics.splice(req.body.deleteIndex,1);
-
-                var result = await Subject.findByIdAndUpdate({_id:req.params.id},{topics:currentTopics});
-                res.send(result)
-            }catch(err) {
-                res.status(501).send(err)
-            }
-        })
+    } catch(err){
+        console.log('mongoDB password was incorrect')
+        res.status(502).send(err);
+    }
+});
 
 
-        // start server on port 3001
-        app.listen(3001,()=>console.log('Active on port 3001'));
+app.get('/loggedIn', async(req,res)=>{
+    try{
+        res.send({login_status:loggedIn});
+    }catch(err){
+        res.send(502).send(err)
+    }
+})
 
-    })
-    .catch(e => console.log('mongo failed to connect'));
 
-
+// start login server on port 3001
+const port = process.env.port || 3000;
+app.listen(3001,()=>console.log('Active on port 3001'));
 

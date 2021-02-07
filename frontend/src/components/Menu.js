@@ -3,12 +3,16 @@ import './Menu.css';
 import uniqid from 'uniqid'
 import axios from 'axios';
 
+const domain = 'http://3.12.162.222'
+//const domain = 'http://localhost:8080'
+
 class Menu extends React.Component {
   
   
   constructor(props){
     super(props)
     this.state = {
+        loggedIn: this.props.loggedIn,
         loadingData: true,
         subjects:null,
         newSubject:'',
@@ -85,8 +89,8 @@ class Menu extends React.Component {
   }
 
   async componentDidMount(){
-    this.getData()
 
+    this.getData()
 
     window.addEventListener("keyup",()=>{
       let editobj = document.getElementById('e' +this.state.editingObj);
@@ -103,20 +107,19 @@ class Menu extends React.Component {
 
 
   async getData(){
-    axios.get('http://localhost:3001/subjects')
+    axios.get(domain + '/subjects')
         .then(response =>{   
             let data = response.data;
             this.setState({subjects:data, loadingData:false});
-            // //console.log(data)
 
         })
         .catch(error =>{
-            //console.log(error) //return error fail to retrieve data
+            console.log(error)
         })
   }
 
   async updateSubjectData(){
-    axios.get('http://localhost:3001/subjects')
+    axios.get(domain + '/subjects')
     .then(response =>{   
         let data = response.data;
         this.setState({subjectData:data[this.state.activeSubject]});
@@ -206,7 +209,7 @@ class Menu extends React.Component {
 
   updateSubjects=async(e)=>{
     e.preventDefault();
-    axios.post('http://localhost:3001/subjects/',{subjectName:this.state.addSubject})
+    axios.post(domain + '/subjects/',{subjectName:this.state.addSubject})
       .then(response => {
         //console.log(response)
       })
@@ -223,7 +226,7 @@ class Menu extends React.Component {
 
     let newsubtopic = this.state.addSubtopic;
 
-    let postAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;
+    let postAddress = domain + '/subtopics/' + this.state.subjectData._id;
     axios.post(postAddress,{topicName:newsubtopic})
       .then(response => {
         //console.log(response)
@@ -253,7 +256,7 @@ class Menu extends React.Component {
   removeSubtopic=async(e)=>{
     e.preventDefault()
 
-    let deleteAddress = 'http://localhost:3001/subtopics/' + this.state.subjectData._id;;
+    let deleteAddress = domain + '/subtopics/' + this.state.subjectData._id;;
     axios.put(deleteAddress,{deleteIndex:this.state.activeTopic})
       .then(response => {
         //console.log(response)
@@ -284,7 +287,7 @@ class Menu extends React.Component {
 
   removeSubject=async(id,e)=>{
     e.preventDefault();
-    let deleteAddress = 'http://localhost:3001/subjects/' + id;
+    let deleteAddress = domain + '/subjects/' + id;
     axios.delete(deleteAddress,{id:id})
       .then(response => {
         //console.log(response)
@@ -374,7 +377,7 @@ class Menu extends React.Component {
     
     ////console.log(currentData)
 
-    let putAddress = 'http://localhost:3001/subjects/' + this.state.subjectData._id;
+    let putAddress = domain + '/subjects/' + this.state.subjectData._id;
     axios.put(putAddress,currentData)
       .then(response => {
         //console.log(response)

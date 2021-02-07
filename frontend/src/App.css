@@ -85,3 +85,23 @@ a:hover, button:hover{
     font-size: 14px;
     font-weight: bold;    
 }
+
+.logoutButton{
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 200;
+    height: 35px;
+    width: 100px;
+    border-radius: 25px;
+    padding: 5px;
+    background: white;
+    border: 2px solid black;
+}
+
+.logoutButton p{
+    height: max-content;
+    width: max-content;
+    align-self: center;
+    justify-self: center;
+}

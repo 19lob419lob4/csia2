@@ -4,6 +4,9 @@ import './App.css';
 import Menu from './components/Menu';
 import axios from 'axios';
 
+const domain = 'http://3.12.162.222'
+//const domain = 'http://localhost:8080'
+
 class App extends React.Component {
 
   constructor(props) {
@@ -20,6 +23,7 @@ class App extends React.Component {
 
     this.toggleMenu = this.toggleMenu.bind(this);
     this.login = this.login.bind(this);
+    this.logOut = this.logOut.bind(this);
     this.loginStatus = this.loginStatus.bind(this);
     this.passwordFieldChange = this.passwordFieldChange.bind(this);
   };
@@ -37,7 +41,7 @@ class App extends React.Component {
   login = async(e)=>{
     e.preventDefault();
     
-    axios.post('http://localhost:3001/login',{password:this.state.password})
+    axios.post(domain+'/login',{password:this.state.password})
       .then(res => {
         this.setState({password:''})
         if(res.data.passwordCorrect){
@@ -55,7 +59,7 @@ class App extends React.Component {
   }
 
   loginStatus= async()=>{
-    axios.get('http://localhost:3001/loggedIn')
+    axios.get(domain+'/loggedIn')
       .then(res =>{
         if(res.data.login_status){
           this.setState({login:true})
@@ -72,10 +76,22 @@ class App extends React.Component {
     this.setState({password:e.target.value})
   }
   
+  logOut =async()=>{
+    axios.post(domain+'/logout')
+    .then(res=> {
+      this.setState({login:res.data.login_status, wrongPassword:false, password:''})
+    })
+    .catch(err =>{
+      console.log(err)
+    })
+  }
   
   render(){
     return(
       <div onLoad = {()=>this.loginStatus()}>
+
+        <button onClick={()=>this.logOut()}class="logoutButton" style={this.state.login?{display:'grid'}:{display:'none'}}><p>Log out</p></button>
+
         {this.state.login==true?(
                 <div className='contentWrapper'>
         
@@ -87,7 +103,7 @@ class App extends React.Component {
                 {/* blank div for grid column block... */}
                 <div></div> 
         
-                <Menu mode={this.state.mode}/>
+                <Menu mode={this.state.mode} loggedIn={this.state.loggedIn}/>
               </div>
         ):(
           <div class="loginWrapper">
